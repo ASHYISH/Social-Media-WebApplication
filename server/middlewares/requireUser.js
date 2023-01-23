@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const { error } = require("../utils/responseWrapper");
 
 module.exports = async (req, res, next) => {
   if (
@@ -6,7 +7,7 @@ module.exports = async (req, res, next) => {
     !req.headers.authorization ||
     !req.headers.authorization.startsWith("Bearer")
   ) {
-    return res.status(401).send("Authorization header is required");
+    return res.send(error(401, "Authorization header is required"));
   }
 
   const accesToken = req.headers.authorization.split(" ")[1];
@@ -18,7 +19,7 @@ module.exports = async (req, res, next) => {
 
     req._id = decoded._id;
     next();
-  } catch (error) {
-    return res.status(401).send("Invalid Access Key");
+  } catch (e) {
+    return res.send(error(401, "Invalid Access Key"));
   }
 };

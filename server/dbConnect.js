@@ -9,8 +9,8 @@ module.exports = async () => {
       useUnifiedTopology: true,
     });
     console.log(`Mongodb Connected : ${connect.connection.host}`);
-  } catch (error) {
-    console.log(error);
+  } catch (e) {
+    console.log(e);
     process.exit(1);
   }
 };

@@ -1,18 +1,19 @@
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { error, success } = require("../utils/responseWrapper");
 
 const signupController = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).send("Email and Password are required");
+      return res.send(error(400, "Email and Password are required"));
     }
 
     const olduser = await User.findOne({ email });
     if (olduser) {
-      return res.status(409).send("Email Already registered");
+      return res.send(error(409, "Email Already registered"));
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -22,9 +23,9 @@ const signupController = async (req, res) => {
       password: hashedPassword,
     });
 
-    return res.status(201).json(user);
-  } catch (error) {
-    console.log(error);
+    return res.send(success(201, { user }));
+  } catch (e) {
+    console.log(e);
   }
 };
 
@@ -33,24 +34,28 @@ const loginController = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).send("Email and Password are required");
+      return res.send(error(400, "Email and Password are required"));
     }
 
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).send("user is not registered");
+      return res.send(error(404, "user is not registered"));
     }
     const matched = await bcrypt.compare(password, user.password);
     if (!matched) {
-      return res.status(403).send("Incorrect Password");
+      return res.send(error(403, "Incorrect Password"));
     }
     const accesToken = generateAccessToken({ _id: user._id });
     const refreshToken = generateRefreshToken({ _id: user._id });
+    res.cookie("jwt", refreshToken, {
+      httpOnly: true,
+      secure: true,
+    });
 
-    return res.json({ accesToken, refreshToken });
-  } catch (error) {
-    console.log(error);
+    return res.send(success(201, { accesToken }));
+  } catch (e) {
+    console.log(e);
   }
 };
 //internal function (that will not import )
@@ -78,10 +83,12 @@ const generateRefreshToken = (data) => {
 //this api will check the refresh token validity and generate a new access token
 
 const refreshAccessTokenContoller = async (req, res) => {
-  const { refreshToken } = req.body;
-  if (!refreshToken) {
-    return res.status(401).send("Refresh token is required");
+  const cookies = req.cookies;
+
+  if (!cookies.jwt) {
+    return res.send(error(401, "Refresh token in cookie is required"));
   }
+  const refreshToken = cookies.jwt;
   try {
     const decoded = jwt.verify(
       refreshToken,
@@ -91,10 +98,10 @@ const refreshAccessTokenContoller = async (req, res) => {
 
     const _id = decoded._id;
     const accessToken = generateAccessToken({ _id });
-    return res.status(201).json({ accessToken });
-  } catch (error) {
-    console.log(error);
-    return res.status(401).send("Invalid refresh token");
+    return res.send(success(201, { accessToken }));
+  } catch (e) {
+    console.log(e);
+    return res.send(error(401, "Invalid refresh token"));
   }
 };
 

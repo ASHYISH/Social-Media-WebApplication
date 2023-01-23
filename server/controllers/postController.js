@@ -1,4 +1,6 @@
+const { success } = require("../utils/responseWrapper");
+
 const getAllPostController = async (req, res) => {
-  res.send("these are all posts");
+  return res.send(success(200, "these are all posts"));
 };
 module.exports = { getAllPostController };
