@@ -5,10 +5,10 @@ const { error, success } = require("../utils/responseWrapper");
 
 const signupController = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, name } = req.body;
 
-    if (!email || !password) {
-      return res.send(error(400, "Email and Password are required"));
+    if (!email || !password || !name) {
+      return res.send(error(400, "All fields are required"));
     }
 
     const olduser = await User.findOne({ email });
@@ -19,13 +19,14 @@ const signupController = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
+      name,
       email,
       password: hashedPassword,
     });
 
-    return res.send(success(201, { user }));
+    return res.send(success(201, "user created successfully"));
   } catch (e) {
-    console.log(e);
+    return res.send(error(500, e.message));
   }
 };
 
@@ -37,7 +38,7 @@ const loginController = async (req, res) => {
       return res.send(error(400, "Email and Password are required"));
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
       return res.send(error(404, "user is not registered"));
@@ -55,14 +56,28 @@ const loginController = async (req, res) => {
 
     return res.send(success(201, { accesToken }));
   } catch (e) {
-    console.log(e);
+    return res.send(error(500, e.message));
   }
 };
+
+const logoutController = async (req, res) => {
+  try {
+    res.clearCookie("jwt", {
+      httpOnly: true,
+      secure: true,
+    });
+
+    return res.send(success(200, "user logged out"));
+  } catch (e) {
+    return res.send(error(500, e.message));
+  }
+};
+
 //internal function (that will not import )
 
 const generateAccessToken = (data) => {
   const token = jwt.sign(data, process.env.ACCESS_TOKEN_PRIVATE_KEY, {
-    expiresIn: "15m",
+    expiresIn: "1d",
   });
 
   // console.log(token);
@@ -109,4 +124,5 @@ module.exports = {
   signupController,
   loginController,
   refreshAccessTokenContoller,
+  logoutController,
 };
