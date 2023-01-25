@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/user");
 const { error } = require("../utils/responseWrapper");
 
 module.exports = async (req, res, next) => {
@@ -18,6 +19,11 @@ module.exports = async (req, res, next) => {
     );
 
     req._id = decoded._id;
+    const user = await User.findById(req._id);
+    if (!user) {
+      return res.send(error(404, "User not found"));
+    }
+
     next();
   } catch (e) {
     return res.send(error(401, "Invalid Access Key"));
