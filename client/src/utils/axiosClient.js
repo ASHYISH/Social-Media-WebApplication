@@ -45,7 +45,6 @@ axiosClient.interceptors.response.use(async (response) => {
     //means the access token has expired
 
     const response = await axiosClient.get("/auth/refresh");
-    console.log("response from backend ", response);
 
     if (response.status === "ok") {
       setItem(KEY_ACCESS_TOKEN, response.result.accessToken);
