@@ -2,6 +2,9 @@ const Post = require("../models/Post");
 const User = require("../models/user");
 const { post } = require("../routers/userRouter");
 const { error, success } = require("../utils/responseWrapper");
+const mapPostOutput = require("../utils/Utils");
+
+const cloudinary = require("cloudinary").v2;
 
 const followOrUnfollowUser = async (req, res) => {
   try {
@@ -141,10 +144,76 @@ const deleteMyProfile = async (req, res) => {
   }
 };
 
+const getMyInfo = async (req, res) => {
+  try {
+    const user = await User.findById(req._id);
+    return res.send(success(200, { user }));
+  } catch (e) {
+    return res.send(error(500, e.message));
+  }
+};
+
+const updateUserProfile = async (req, res) => {
+  try {
+    const { name, bio, userImg } = req.body;
+
+    const user = await User.findById(req._id);
+
+    if (name) {
+      user.name = name;
+    }
+    if (bio) {
+      user.bio = bio;
+      console.log(bio);
+    }
+
+    if (userImg) {
+      const cloudImg = await cloudinary.uploader.upload(userImg, {
+        folder: "profileImg",
+      });
+
+      user.avatar = {
+        url: cloudImg.secure_url,
+        publicId: cloudImg.public_id,
+      };
+    }
+
+    await user.save();
+    return res.send(success(200, { user }));
+  } catch (e) {
+    return res.send(error(500, e.message));
+  }
+};
+
+const getUserProfile = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    const user = await User.findById(userId).populate({
+      path: "posts",
+      populate: {
+        path: "owner",
+      },
+    });
+
+    const fullPosts = user.posts;
+    const posts = fullPosts
+      .map((item) => mapPostOutput(item, req._id))
+      .reverse();
+
+    return res.send(success(200, { ...user._doc, posts }));
+  } catch (e) {
+    return res.send(error(500, e.message));
+  }
+};
+
 module.exports = {
   followOrUnfollowUser,
   getPostsOfFollowing,
   getMyPosts,
   getUserPosts,
   deleteMyProfile,
+  getMyInfo,
+  updateUserProfile,
+  getUserProfile,
 };

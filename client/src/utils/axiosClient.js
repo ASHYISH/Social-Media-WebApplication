@@ -31,16 +31,6 @@ axiosClient.interceptors.response.use(async (response) => {
   const statusCode = data.statusCode;
   const error = data.error;
 
-  if (
-    statusCode === 401 &&
-    originalRequest.url ===
-      `${process.env.REACT_APP_SERVER_BASE_URL}/auth/refresh`
-  ) {
-    removeItem(KEY_ACCESS_TOKEN);
-    window.location.replace("/login", "_self");
-    return Promise.reject(error);
-  }
-
   if (statusCode === 401) {
     //means the access token has expired
 
@@ -54,6 +44,10 @@ axiosClient.interceptors.response.use(async (response) => {
       ] = `Bearer ${response.result.accessToken}`;
 
       return axios(originalRequest);
+    } else {
+      removeItem(KEY_ACCESS_TOKEN);
+      window.location.replace("/login", "_self");
+      return Promise.reject(error);
     }
   }
 
