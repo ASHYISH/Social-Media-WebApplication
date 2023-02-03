@@ -29,19 +29,13 @@ const followOrUnfollowUser = async (req, res) => {
 
       const followerIndex = userToFollow.followers.indexOf(curUserId);
       userToFollow.followers.splice(followerIndex, 1);
-
-      await userToFollow.save();
-      await curUser.save();
-
-      return res.send(success(200, "User unfollowed"));
     } else {
       userToFollow.followers.push(curUserId);
       curUser.followings.push(userIdToFollow);
-
-      await userToFollow.save();
-      await curUser.save();
-      return res.send(success(200, "User followed"));
     }
+    await userToFollow.save();
+    await curUser.save();
+    return res.send(success(200, { user: userToFollow }));
   } catch (e) {
     return res.send(error(500, e.message));
   }
@@ -50,14 +44,25 @@ const followOrUnfollowUser = async (req, res) => {
 const getPostsOfFollowing = async (req, res) => {
   try {
     const curUserId = req._id;
-    const curUser = await User.findById(curUserId);
-    const posts = await Post.find({
+    const curUser = await User.findById(curUserId).populate("followings");
+    const fullPosts = await Post.find({
       owner: {
         $in: curUser.followings,
       },
-    });
+    }).populate("owner");
 
-    return res.send(success(200, posts));
+    const posts = fullPosts
+      .map((item) => mapPostOutput(item, req._id))
+      .reverse();
+
+    const followingsIds = curUser.followings.map((item) => item._id);
+    followingsIds.push(curUserId);
+    const suggestions = await User.find({
+      _id: {
+        $nin: followingsIds,
+      },
+    });
+    return res.send(success(200, { ...curUser._doc, suggestions, posts }));
   } catch (e) {
     return res.send(error(500, e.message));
   }
