@@ -1,6 +1,6 @@
 import store from "../redux/store";
 import { setLoading, showToast } from "../redux/slices/appConfigSlice";
-import { TOAST_FAILURE } from "../App";
+import { TOAST_FAILURE, TOAST_SUCCESS } from "../App";
 
 import axios from "axios";
 import {
@@ -29,6 +29,7 @@ axiosClient.interceptors.response.use(
   async (response) => {
     store.dispatch(setLoading(false));
     const data = response.data;
+
     if (data.status === "ok") {
       return data;
     }

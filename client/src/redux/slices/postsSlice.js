@@ -19,6 +19,7 @@ export const likeAndUnlikePost = createAsyncThunk(
   "post/likeAndUnlikePost",
   async (body) => {
     try {
+      console.log("body", body);
       const response = await axiosClient.post("/posts/like", body);
 
       return response.result.post;

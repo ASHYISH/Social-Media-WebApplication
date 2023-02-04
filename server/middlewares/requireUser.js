@@ -19,6 +19,7 @@ module.exports = async (req, res, next) => {
     );
 
     req._id = decoded._id;
+
     const user = await User.findById(req._id);
     if (!user) {
       return res.send(error(404, "User not found"));

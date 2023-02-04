@@ -4,6 +4,9 @@ import { updateMyProfile } from "../../redux/slices/appConfigSlice";
 import dummyUserImg from "../../assets/user.png";
 
 import "./UpdateProfile.scss";
+import { KEY_ACCESS_TOKEN, removeItem } from "../../utils/localStorageManager";
+import { axiosClient } from "../../utils/axiosClient";
+import { useNavigate } from "react-router-dom";
 
 function UpdateProfile() {
   const myProfile = useSelector((state) => state.appConfigReducer.myProfile);
@@ -12,6 +15,7 @@ function UpdateProfile() {
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
   const [userImg, setUserImg] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     setName(myProfile?.name || "");
@@ -28,6 +32,17 @@ function UpdateProfile() {
         setUserImg(fileReader.result);
       }
     };
+  }
+
+  async function handleDeleteUser() {
+    try {
+      const result = await axiosClient.delete("/user");
+
+      removeItem(KEY_ACCESS_TOKEN);
+      navigate("/login");
+    } catch (e) {
+      console.log(e.message);
+    }
   }
 
   function handleSubmit(e) {
@@ -80,7 +95,12 @@ function UpdateProfile() {
             />
           </form>
 
-          <button className="delete-account btn-primary">Delete Account</button>
+          <button
+            className="delete-account btn-primary "
+            onClick={handleDeleteUser}
+          >
+            Delete Account
+          </button>
         </div>
       </div>
     </div>

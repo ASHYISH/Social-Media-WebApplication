@@ -1,5 +1,8 @@
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
+import { TOAST_SUCCESS } from "../../App";
+import { showToast } from "../../redux/slices/appConfigSlice";
 import { axiosClient } from "../../utils/axiosClient";
 
 import "./Signup.scss";
@@ -8,19 +11,23 @@ function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+  const dispatch = useDispatch();
   async function handleSubmit(e) {
     e.preventDefault();
     try {
-      const result = await axiosClient.post("/auth/signup", {
+      const response = await axiosClient.post("/auth/signup", {
         name,
         email,
         password,
       });
-
-      console.log(result);
+      dispatch(
+        showToast({
+          type: TOAST_SUCCESS,
+          message: response.result,
+        })
+      );
     } catch (e) {
-      console.log(e);
+      console.log(e.message);
     }
   }
   return (

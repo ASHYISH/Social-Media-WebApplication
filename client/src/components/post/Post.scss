@@ -12,6 +12,35 @@
         cursor: pointer;
     }
 
+    input {
+        width: 100%;
+        padding: 8px 16px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+    }
+
+    .update-caption {
+        display: flex;
+        margin-top: 23px;
+    }
+
+    // .delete-btn {
+    //     background-color: red;
+
+
+    // }
+
+    // .deleteBtnClass {
+    //     display: flex;
+    //     justify-content: flex-end;
+
+    // }
+    .delete-btn-icon {
+        background-color: white;
+        color: black;
+        font-size: 24px;
+    }
+
     .content {
         height: 400px;
 

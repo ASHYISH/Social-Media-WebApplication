@@ -14,14 +14,15 @@ function Navbar() {
   const navigate = useNavigate();
 
   const myProfile = useSelector((state) => state.appConfigReducer.myProfile);
-  const dispatch = useDispatch();
 
   async function handleLogoutClicked() {
     try {
       await axiosClient.post("/auth/logout");
       removeItem(KEY_ACCESS_TOKEN);
       navigate("/login");
-    } catch (e) {}
+    } catch (e) {
+      console.log(e.message);
+    }
   }
 
   return (
